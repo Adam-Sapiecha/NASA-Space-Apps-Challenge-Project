@@ -17,6 +17,8 @@ def record(kind, key):
     value = store.get(kind, key)
     if value is None:
         raise HTTPException(404, 'Nie znaleziono zapisanego wyniku.')
+    if kind == 'analysis' and value.get('provisional'):
+        raise HTTPException(409, 'Download in progress. Measurements become available when all candidates have been checked.')
     return value
 
 
@@ -103,6 +105,23 @@ def star_positions(request: Star):
 
 class Position(Point):
     frame_id: str = Field(max_length=100)
+
+
+@router.post('/api/analyses/{id}/auto-motion',status_code=202)
+def automatic_motion(id: str):
+    return enqueue('auto_motion',record('analysis',id),{})
+
+
+@router.get('/api/analyses/{id}/motion-previews/{filename}')
+def automatic_motion_preview(id: str,filename: str):
+    import re
+    from fastapi.responses import FileResponse
+    manifest=record('analysis',id)
+    if not re.fullmatch(r'[a-f0-9]{20}\.png',filename) or filename[:-4] not in {f['id'] for f in manifest['frames']}:
+        raise HTTPException(404,'Nie znaleziono podglądu.')
+    path=store.ROOT/'analyses'/id/(filename[:-4]+'.motion.png')
+    if not path.exists():raise HTTPException(404,'Nie znaleziono podglądu.')
+    return FileResponse(path)
 
 
 class Motion(Dates):

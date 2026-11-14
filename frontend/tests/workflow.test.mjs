@@ -1,9 +1,46 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {proposeSeries,comparisonSeries,closeBands,nextFrame,validPoint} from '../src/workflow.ts';
+import {proposeSeries,comparisonSeries,closeBands,nextFrame,validPoint,recommendedAnalysis} from '../src/workflow.ts';
 
 const observation=(id,mjd,band='D1')=>({id,mjd,band});
 const frame=(id,mjd,wavelength,coverage=1)=>({...observation(id,mjd),coverage,wavelength_um:wavelength,bandwidth_um:.04});
+
+test('saved full galleries reopen the recommended frames and retain measurement warnings',()=>{
+ const frames=Array.from({length:36},(_,i)=>frame(String(i),i,i<2?1:i));
+ const saved={frames,failures:[{observation:'35',error:'archive failure'}],selection:{selected_ids:['0','1'],pair_ids:['0','1'],status:'image_pair_only'}};
+ const result=recommendedAnalysis(saved);
+ assert.deepEqual(result.frames.map(f=>f.id),['0','1']);
+ assert.equal(saved.frames.length,36);
+ assert.equal(result.selection.status,'image_pair_only');
+ assert.equal(result.failures.length,0);
+ const manual={frames,failures:[]};
+ assert.equal(recommendedAnalysis(manual),manual);
+});
+
+test('full 48-frame galleries find the best series without exponential subset search',()=>{
+ const frames=Array.from({length:48},(_,i)=>frame(String(i),Math.floor(i/2),1));
+ const result=comparisonSeries(frames);
+ assert.equal(result.length,24);
+ assert.equal(new Set(result.map(i=>frames[i].mjd)).size,24);
+});
+
+test('wavelength-extreme search agrees with exhaustive search for varied widths and repeated dates',()=>{
+ let seed=19;
+ const random=()=>((seed=(seed*1664525+1013904223)>>>0)/2**32);
+ for(let run=0;run<80;run++){
+  const frames=Array.from({length:9},(_,i)=>({...frame(String(i),Math.floor(random()*6),1+random()*.1),bandwidth_um:.01+random()*.16}));
+  let count=0,span=-1;
+  for(let mask=1;mask<1<<frames.length;mask++){
+   const chosen=frames.filter((_,i)=>mask>>i&1);
+   if(chosen.length<2||!chosen.every((a,i)=>chosen.slice(i+1).every(b=>a.mjd!==b.mjd&&closeBands(a,b))))continue;
+   const gap=Math.max(...chosen.map(f=>f.mjd))-Math.min(...chosen.map(f=>f.mjd));
+   if(chosen.length>count||chosen.length===count&&gap>span){count=chosen.length;span=gap}
+  }
+  const result=comparisonSeries(frames);
+  assert.equal(result.length,count);
+  if(result.length)assert.equal(frames[result.at(-1)].mjd-frames[result[0]].mjd,span);
+ }
+});
 test('proposal chooses distinct times, rather than privileging D2 or simultaneous images',()=>{
  const observations=[observation('a',0),observation('b',5),observation('c',10),observation('d',0,'D2'),observation('e',0,'D2'),observation('f',0,'D2'),observation('g',0,'D2')];
  assert.deepEqual(proposeSeries(observations).map(o=>o.id),['a','b','c']);

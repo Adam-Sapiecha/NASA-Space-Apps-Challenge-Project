@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {ArrowRight,Pause,Play,X} from 'lucide-react';
 import motion from './motionShowcase.json';
 
-export default function MotionExample({onClose}:{onClose:()=>void}){
+export default function MotionExample({onClose,onPredict}:{onClose:()=>void;onPredict?:()=>void}){
  const [playing,setPlaying]=useState(true),[epoch,setEpoch]=useState(0),[markers,setMarkers]=useState(true),[original,setOriginal]=useState(false),[side,setSide]=useState(false);
  useEffect(()=>{motion.frames.forEach(f=>{for(const src of [f.image,f.original]){const img=new Image();img.src=src}})},[]);
  useEffect(()=>{if(!playing||side)return;const id=setInterval(()=>setEpoch(v=>1-v),1000);return()=>clearInterval(id)},[playing,side]);
@@ -11,6 +11,7 @@ export default function MotionExample({onClose}:{onClose:()=>void}){
  const image=(i:number)=><div className="motion-photo"><img src={original?motion.frames[i].original:motion.frames[i].image} alt={`${t('Rzeczywista obserwacja SPHEREx 3I/ATLAS')}, ${t('14 grudnia 2025')}, ${time(i)}`} width="117" height="117"/>{markers&&motion.frames.map((f,j)=><span key={f.id} className="motion-reference" style={{left:`${100*f.point.x}%`,top:`${100*f.point.y}%`}}><span>{j?'B':'A'}</span></span>)}<span className="motion-photo-date">{i?'B':'A'} · {time(i)}</span></div>;
  return <section className="motion-example" id="motion-example" aria-labelledby="motion-title">
   <div className="motion-heading"><div><span className="motion-eyebrow">{t("Rzeczywiste zdjęcia SPHEREx · znana kometa")}</span><h2 id="motion-title">{t("Zobacz, jak przesuwa się 3I/ATLAS")}</h2><p>{t("Patrz na jasną plamkę: z pozycji A przechodzi do B. Znaczniki A i B pozostają w tych samych miejscach.")}</p></div><button className="subtle" onClick={onClose} aria-label={t("Zamknij pokaz ruchu")}><X size={18}/></button></div>
+  {onPredict&&<button className="motion-predict-link" onClick={onPredict}>{t('Przewidź kolejną pozycję')} <ArrowRight size={15}/></button>}
   <div className="motion-demo-body"><div>
    <div className="motion-controls"><button className="primary" disabled={side} onClick={()=>setPlaying(v=>!v)}>{playing&&!side?<Pause size={16}/>:<Play size={16}/>} {playing&&!side?t('Zatrzymaj'):t('Odtwórz ruch')}</button><button aria-pressed={side} onClick={()=>setSide(v=>!v)}>{side?t('Miganie A/B'):t('Dwa zdjęcia obok siebie')}</button><label><input type="checkbox" checked={markers} onChange={e=>setMarkers(e.target.checked)}/>  {t("Pokaż pozycje A i B")}</label></div>
    <div className={`motion-images ${side?'motion-side':''}`}>{side?<>{image(0)}{image(1)}</>:image(epoch)}</div>

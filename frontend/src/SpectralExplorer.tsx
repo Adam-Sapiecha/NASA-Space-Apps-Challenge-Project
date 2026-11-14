@@ -25,7 +25,7 @@ export default function SpectralExplorer(p:Props){
     <div className="spectral-image">
      <div className="spectral-image-heading"><strong style={{color:wavelengthColor(row.wavelength)}}>{p.expert?`${row.wavelength.toFixed(4)} µm`:bandLabel(row.wavelength)}</strong><span>{p.expert?`${date(frame.date)} UTC · ${frame.band.replace('SPHEREx-','')}`:`${t('Pasmo')} ${selected+1} / ${rows.length}`}</span></div>
      <Viewer frames={p.frames} a={row.index} b={row.index} mode="spectral" radius={0} pinned={p.pinned} point={p.point} onPoint={p.onPoint} onPick={point=>{setPlaying(false);p.onPick(point)}} anchors={[]} zoom={zoom} routeStep={0} panMode={zoom>1} showQuality={p.showQuality} animating={false} interval={speed} spectralTint={colored?wavelengthColor(row.wavelength):undefined}/>
-     <div className="spectral-image-footer"><span className="missing-legend">{t("Kreskowanie: brak danych lub odrzucony piksel")}</span>{p.showQuality&&<span>{t("Pomarańczowe ramki: ostrzeżenia jakości")}</span>}<label>{t("Powiększenie")}<select value={zoom} onChange={e=>setZoom(Number(e.target.value))}><option value="1">{t("Całe pole")}</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
+     <div className="spectral-image-footer"><span className="missing-legend">{t("Kreskowanie: brak danych lub odrzucony piksel")}</span>{p.showQuality&&<span>{t("Pomarańczowe ramki: piksele z flagami błędów")}</span>}<label>{t("Powiększenie")}<select value={zoom} onChange={e=>setZoom(Number(e.target.value))}><option value="1">{t("Całe pole")}</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
     </div>
     <aside className="spectral-controls">
      <strong>{t("Przejdź przez dostępne pasma")}</strong>

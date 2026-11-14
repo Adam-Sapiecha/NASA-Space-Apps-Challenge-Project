@@ -39,6 +39,14 @@ def run_job(id,kind,manifest,settings):
         elif kind=='ephemeris':
             from backend.trajectory import ephemeris
             result=ephemeris(**settings)
+        elif kind=='auto_motion':
+            from backend.auto_motion import automatic_prediction,motion_previews
+            result=automatic_prediction(manifest,progress=progress)
+            if result.get('validation'):
+                selected={f['id'] for f in result['frames']}
+                links,processing=motion_previews(dict(manifest,frames=[f for f in manifest['frames'] if f['id'] in selected]))
+                for frame in result['frames']:frame['image']=links[frame['id']]
+                result['display_processing']=processing
         elif kind=='motion':
             from backend.native_diagnostics import native_profile
             from backend.trajectory import linear_motion

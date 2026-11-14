@@ -1,5 +1,11 @@
 # SPHEREx — porównanie epok
 
+Automatyczny dobór sprawdza do 36 kandydatów, pobierając i kontrolując do czterech obserwacji równocześnie. Do oglądania przygotowuje tylko wybraną serię (do ośmiu klatek), według lokalnego pasma, flag, pokrycia, tła i dat. Nie otwiera całej próbki kandydatów jako serii czasowej. Zapisane wcześniej pełne galerie również otwierają wybrane klatki. Odświeżenie strony wznawia obserwowanie postępu zadania.
+
+W tej samej klasie poprawności apertury para do pokazu ruchu maksymalizuje odstęp czasu; ostrzeżenia sąsiada i różnice pokrycia rozstrzygają remisy. Zgodność lokalnego pasma i różne daty pozostają wymagane. Dodatkowe zgodne epoki służą do sprawdzenia przebiegu ruchu. Dobór obejmuje ograniczoną próbkę archiwum, więc nie gwarantuje największego odstępu w całym archiwum.
+
+**Wspólny podgląd czasu i pasma:** daty, pasma, animacja i ustawienia wyświetlania działają na tych samych obrazach A/B. Domyślnie otwieramy rekomendowaną parę ze wspólną skalą jasności. Każdą rzeczywistą obserwację z wyników wyszukiwania można zestawić z każdą inną; brakujące FITS pobierają się dopiero po zatwierdzeniu zestawu. Jasność, piksele, maskę flag i umowny kolor można ustawić wspólnie albo osobno dla A i B. Przycisk „Najlepszy zestaw i ustawienia” przywraca domyślne ustawienia. [Obsługa, ograniczenia i sprawdzenie](CZAS_I_PASMO.md).
+
 **Nowe: obsługa EN/PL, prosty start z kometą i dobór lokalnych danych:** [zakres zmian i wyniki pięciu pól](WDROZENIE_EN_I_DOBORU_OBSERWACJI.md). Domyślnie pokazujemy 3I/ATLAS i prosty interfejs; pełne narzędzia otwiera przycisk. Automatyczne przygotowanie sprawdza lokalne pasma, flagi, aperturę i tło przed wyborem dat.
 
 **Poprawki po audycie matematycznym:** [zakres, wyniki i weryfikacja](NAPRAWY_AUDYTU_MATEMATYCZNEGO.md). Spójne pozycje i eksport, mapy powierzchni pikseli, normalizacja ePSF i panel wrażliwości na centrowanie/tło. Archiwalne obliczenia są zachowane i oznaczone; do nowej analizy wymagają przeliczenia.
@@ -166,5 +172,7 @@ Jeśli zapisany przykład nie jest obecny na innym serwerze, trzeba zaimportowa�
 Przy awarii IRSA wyszukiwanie może użyć zapisanej listy z tego samego wydania, ze środkiem oddalonym najwyżej o 1″ (tolerancja zaokrąglenia współrzędnych). Pierwszeństwo ma zgodny rozmiar pola. Jeśli dostępny jest inny rozmiar, komunikat podaje wybrany i zapisany obszar; przygotowanie korzysta z rzeczywistej zapisanej geometrii. Lista jest oznaczona jako archiwalna i może nie zawierać nowych ekspozycji. Bez odpowiedniego zapisu aplikacja wyświetla komunikat o niedostępności, zamiast podstawiać inny cel lub wydanie.
 
 ## Widoczny ruch — gotowy przykład 3I/ATLAS
+
+Nowa funkcja: [automatyczna predykcja ruchu](http://127.0.0.1:8000/?prediction=1&motion=0&lang=pl) — prognoza na rzeczywistym tle, formalna elipsa niepewności, suwak czasu oraz odsłonięcie późniejszej obserwacji kontrolnej. Przykład 3I/ATLAS dopasowuje trzy automatycznie zmierzone pozycje i sprawdza czwartą; różnica w tym jednym teście wyniosła 3,49″. Inne serie można sprawdzać bez ręcznego oznaczania źródeł, z odmową przy brakujących lub niejednoznacznych danych. Metoda, ograniczenia i odtwarzanie: [PREDYKCJA_RUCHU.md](PREDYKCJA_RUCHU.md).
 
 Na stronie głównej wybierz **Zobacz przykład ruchu** albo otwórz [pokaz ruchu](http://127.0.0.1:8000/?motion=1). Dwie rzeczywiste obserwacje komety z 14 grudnia 2025 dzieli 98 minut i około 4,77′ przesunięcia według efemeryd. Pokaz miga zdjęciami w tej samej geometrii nieba; można ukryć nieruchome znaczniki A/B, porównać obrazy obok siebie i otworzyć te dane w pełnym warsztacie. Przenośne obrazy i FITS są częścią frontendu. Pochodzenie, kontrola obrazu i ograniczenia: [RUCH_DEMO.md](RUCH_DEMO.md).

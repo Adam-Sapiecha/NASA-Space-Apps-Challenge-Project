@@ -370,6 +370,7 @@ def reference_spectrum(id:str,request:ReferenceRequest):
 class PreviewRequest(BaseModel):
     quality: str = Field(default='all', pattern='^(all|valid)$')
     range_mode: str = Field(default='standard', pattern='^(standard|faint|full)$')
+    frame_ids: list[str] | None = Field(default=None, min_length=1, max_length=48)
 
 @app.post('/api/analyses/{id}/previews')
 def preview(id: str, request: PreviewRequest):
@@ -423,7 +424,7 @@ def field(request: SearchRequest):
 
 @app.get('/api/analyses/{id}/footprint')
 def analysis_footprint(id: str):
-    manifest = record('analysis', id)
+    manifest = record('analysis', id, allow_provisional=True)
     return dict(ra=manifest['search']['ra'], dec=manifest['search']['dec'],
                 footprint=footprint(manifest['wcs'], manifest['pixels']))
 
@@ -464,10 +465,12 @@ def product_file(id: str, filename: str):
         raise HTTPException(404)
     return FileResponse(store.ROOT/'products'/id/filename)
 
-def record(kind, id):
+def record(kind, id, *, allow_provisional=False):
     value = store.get(kind, id)
     if value is None:
         raise HTTPException(404, "Nie znaleziono zapisu.")
+    if kind == 'analysis' and value.get('provisional') and not allow_provisional:
+        raise HTTPException(409, 'Download in progress. Measurements become available when all candidates have been checked.')
     return value
 
 @app.get("/api/health")
@@ -576,16 +579,16 @@ def job(id: str):
 
 @app.get("/api/analyses/{id}")
 def analysis(id: str):
-    return record("analysis", id)
+    return record("analysis", id, allow_provisional=True)
 
 @app.get("/api/analyses/{id}/export")
 def export(id: str):
-    record("analysis", id)
+    record("analysis", id, allow_provisional=True)
     return FileResponse(store.ROOT / "analyses" / id / "manifest.json", filename=f"analysis-{id}.json")
 
 @app.get("/api/analyses/{id}/frames/{filename}")
 def frame(id: str, filename: str):
-    manifest = record("analysis", id)
+    manifest = record("analysis", id, allow_provisional=True)
     if not re.fullmatch(r"[a-f0-9]{20}\.(png|fits)", filename) or filename.split(".")[0] not in {f["id"] for f in manifest["frames"]}:
         raise HTTPException(404)
     return FileResponse(store.ROOT / "analyses" / id / filename)
@@ -608,6 +611,8 @@ def sample(id: str, x: float = Query(ge=0, le=1, allow_inf_nan=False), y: float 
 
 from backend.analysis_api import router as analysis_router
 app.include_router(analysis_router)
+from backend.comparison_api import router as comparison_router
+app.include_router(comparison_router)
 
 dist = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 if dist.exists():

@@ -51,6 +51,18 @@ def test_valid_local_apertures_beat_long_invalid_baselines_without_using_flux():
     assert selection.choose(rows) == result
 
 
+def test_motion_baseline_beats_small_coverage_differences_in_the_same_quality_tier():
+    rows=[checked('early',0),checked('nearby',7),
+          dict(checked('late',300),local_coverage=.9,neighbor_warning=True),
+          checked('wrong-band',1000,wavelength=2.)]
+    result=selection.choose(rows)
+    assert result['pair_ids']==['early','late']
+    assert result['baseline_days']==300
+    assert 'nearby' in result['selected_ids']  # Keep a compatible intermediate epoch.
+    assert 'wrong-band' not in result['selected_ids']
+    assert result['status']=='aperture_pair_available'
+
+
 def test_rejects_simultaneous_or_incompatible_local_bands_and_chain():
     assert selection.choose([checked('a', 1), checked('b', 1)])['pair_ids'] == []
     assert selection.choose([checked('a', 1), checked('b', 2, wavelength=2)])['pair_ids'] == []
@@ -121,12 +133,85 @@ def test_auto_api_bounds_jobs_and_binds_catalogue_to_actual_field(monkeypatch):
         assert store.get('job',response.json()['id'])['phase']=='selection'
 
 
-def test_selection_provenance_survives_analysis_and_retry(monkeypatch):
-    source=dict(id='s',ra=42,dec=0,fov_arcmin=6,observations=[])
-    report=dict(selected_ids=['a'],candidates=[dict(id='a',cutout_fov_arcmin=12)],method='test')
+def test_parallel_inspection_prepares_only_the_recommended_series(tmp_path, monkeypatch):
+    import threading
+    observations=[obs(f'{i:020x}',i) for i in range(36)]
+    source=dict(id='s',ra=42,dec=0,fov_arcmin=2,observations=observations)
+    barrier=threading.Barrier(4)
+    lock=threading.Lock()
+    active=peak=0
+    def inspect(o, *args, **kwargs):
+        nonlocal active,peak
+        with lock:
+            active+=1;peak=max(peak,active)
+        barrier.wait(timeout=10)
+        with lock:active-=1
+        row=checked(o['id'],o['mjd'],wavelength=1. if o['mjd']<2 else 1.+o['mjd']*.3)
+        row['cutout_fov_arcmin']=4
+        if o['mjd']==35:return dict(row,reason='controlled download failure')
+        return dict(row,native_fits_sha256='fixture')
+    native=tmp_path/'native.fits';native.write_bytes(b'controlled fixture')
     calls=[]
-    monkeypatch.setattr(selection,'select_observations',lambda *a,**kw:report)
-    monkeypatch.setattr(science,'build_analysis',lambda *a,**kw:calls.append((a,kw)))
+    def download(o, *args, **kwargs):
+        calls.append(o)
+        return native
+    def read(path, coord, wcs, pixels):
+        image=np.arange(pixels*pixels,dtype=float).reshape(pixels,pixels)
+        return image,np.zeros_like(image,dtype=np.uint32),image*0+1,image*0+.04,dict(
+            unit='MJy/sr',wavelength_um=1.,bandwidth_um=.04,coverage=1.,flag_definitions={},masked_flags=[])
+    original=store.put
+    progress=[]
+    def put(kind, id, value):
+        original(kind,id,value)
+        if kind=='job' and value.get('phase')=='selection':
+            progress.append((value['completed'],value['total']))
+    monkeypatch.setattr(selection,'inspect_observation',inspect)
+    monkeypatch.setattr(science,'download',download)
+    monkeypatch.setattr(science,'read_frame',read)
+    monkeypatch.setattr(store,'put',put)
+    # science imported put directly; observe both paths without changing storage.
+    monkeypatch.setattr(science,'put',put)
     selection.build_selected_analysis('job',source)
-    assert store.get('selection','job')['method']=='test'
-    assert calls[0][1]['selection']==report
+    assert peak==4
+    assert progress[0]==(0,36) and progress[-1]==(36,36)
+    result=store.get('analysis','job')
+    assert store.get('job','job')['status']=='complete', store.get('job','job')
+    assert not result['provisional']
+    assert len(result['frames'])==2
+    assert [f['id'] for f in result['frames']]==result['selection']['selected_ids']
+    assert set(result['selection']['pair_ids'])==set(result['selection']['selected_ids'])
+    assert len(result['selection']['selected_ids'])==2
+    assert result['selection']=={k:v for k,v in store.get('selection','job').items() if k!='id'}
+    assert result['selection']['complete'] and result['selection']['inspected']==36
+    assert any(r.get('reason')=='controlled download failure' for r in result['selection']['candidates'])
+    assert not result['failures']
+    assert len(calls)==2 and all(o['cutout_fov_arcmin']==4 for o in calls)
+    assert result['pixels']==32  # Expanded native cutouts do not enlarge the display field.
+    assert all(f['image'].endswith('?v=final') for f in result['frames'])
+
+
+def test_provisional_images_are_readable_but_measurements_cannot_cache_incomplete_series():
+    store.put('analysis','pending',dict(id='pending',provisional=True,frames=[]))
+    with TestClient(main.app) as client:
+        assert client.get('/api/analyses/pending').status_code==200
+        for path,body in [('previews',{}),('measurements',dict(x=.5,y=.5)),('profile',dict(x=.5,y=.5))]:
+            response=client.post('/api/analyses/pending/'+path,json=body)
+            assert response.status_code==409, (path,response.text)
+
+
+def test_publishing_retries_a_temporary_windows_file_lock(tmp_path, monkeypatch):
+    from pathlib import Path
+    temp=tmp_path/'manifest.tmp';temp.write_text('new complete snapshot')
+    target=tmp_path/'manifest.json';target.write_text('prior complete snapshot')
+    original=Path.replace
+    calls=[]
+    def replace(path, destination):
+        calls.append(path)
+        if len(calls)==1:
+            assert target.read_text()=='prior complete snapshot'
+            raise PermissionError('controlled Windows sharing violation')
+        return original(path,destination)
+    monkeypatch.setattr(Path,'replace',replace)
+    monkeypatch.setattr(science.time,'sleep',lambda seconds:None)
+    science.replace_ready_file(temp,target)
+    assert len(calls)==2 and target.read_text()=='new complete snapshot'

@@ -11,7 +11,7 @@ Wdrożenie wskazanych punktów 2–4, 14 listopada 2026. Zmiany dotyczą lokalne
 
 **Dobór obserwacji**
 
-Nowa operacja `POST /api/analyses/auto` działa w istniejącej kolejce. Domyślnie sprawdza do 36 kandydatów z różnych detektorów. API ogranicza próbkę do 12–48 obserwacji, a gotowy zestaw do ośmiu klatek. Ręczny wybór nadal działa.
+Operacja `POST /api/analyses/auto` działa w istniejącej kolejce. Domyślnie sprawdza do 36 kandydatów z różnych detektorów; API ogranicza próbkę do 12–48 obserwacji. Zgodnie z przywróconym sposobem doboru przygotowuje tylko rekomendowaną serię do ośmiu klatek, zamiast całej galerii kandydatów. Pobieranie i kontrola nadal działają w czterech wątkach. Przeglądarka wybiera rekomendowane klatki także przy otwieraniu starszych pełnych galerii. Ręczny wybór nadal działa.
 
 Dla każdego kandydata sprawdzane są natywne IMAGE/VARIANCE/FLAGS, lokalna długość i szerokość pasma, pokrycie apertury, flagi, dostępność czystego tła i termin. Dla jawnie wybranego katalogowego celu pozycja jest prognozowana osobno dla każdej daty z ruchem własnym. Własne współrzędne pozostają stałe w ICRS.
 
@@ -41,9 +41,9 @@ Liczebności zestawów różnią się, ponieważ nowy dobór wybiera porównywal
 
 **Weryfikacja i odtworzenie**
 
-- 119 testów backendu, bez błędów: `.cache/main-update-backend-tests.xml`.
-- 34 testy frontendu, bez błędów; build TypeScript/Vite przechodzi. Pozostaje znane ostrzeżenie wielkości pakietu Aladin.
-- Test prawdziwej kolejki API: `scripts/smoke_main_updates.py`, wynik `data/audit/main-updates-api.json`. Sprawdzono 36 kandydatów, przygotowano dwa obrazy Epsilon Indi B, odczytano raport i eksport. Backend miał `code_changed=false`.
+- Po przywróceniu doboru: 121 testów backendu i 37 testów frontendu bez błędów. Obejmuje to ograniczenie równoległości do czterech zadań, kontrolę 36 kandydatów przy przygotowaniu wyłącznie wybranej pary, przywracanie rekomendacji ze starszych pełnych galerii oraz ponowienie atomowego zapisu przy chwilowej blokadzie Windows.
+- Build TypeScript/Vite przechodzi. Pozostaje znane ostrzeżenie wielkości pakietu Aladin.
+- Test prawdziwej kolejki API: `scripts/smoke_main_updates.py`, wynik `data/audit/main-updates-api.json`. Skrypt sprawdza ograniczenie do ośmiu przygotowanych klatek i ich zgodność z listą rekomendacji, przy kontroli do 36 kandydatów. Wcześniejszy wariant galerii przygotowywał 34 obrazy Epsilon Indi B, lecz został zastąpiony doborem wyłącznie rekomendowanej serii.
 - Przeglądarka: nowy ekran z kometą, przełączenie PL/EN, angielski błąd RA=360, rzeczywiste wyszukiwanie Epsilon Indi B (368 obrazów), raport nowego doboru i odtwarzanie.
 - Pierwsze próby w sandboxie napotykały ograniczenia gniazd lub plików tymczasowych. Końcowe testy i reprojekcja zostały wykonane z właściwym dostępem. Nie traktowano błędów sandboxa jako błędów naukowych danych.
 

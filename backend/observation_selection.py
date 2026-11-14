@@ -5,6 +5,7 @@ matching WCS-WAVE band is only a browsing heuristic, not a calibrated response.
 """
 import hashlib
 import warnings
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import numpy as np
@@ -176,9 +177,12 @@ def choose(rows, limit=8):
 
     def score(pair):
         a, b = pair
+        # Preserve the aperture-quality tier, then maximise the time available
+        # for visible motion. Small coverage differences must not win over it.
         return (int(a['aperture_valid'])+int(b['aperture_valid']),
+                abs(a['mjd']-b['mjd']),
                 -int(a.get('neighbor_warning', False))-int(b.get('neighbor_warning', False)),
-                min(a['local_coverage'], b['local_coverage']), abs(a['mjd']-b['mjd']))
+                min(a['local_coverage'], b['local_coverage']))
 
     best = max(pairs, key=score)
     selected = list(sorted(best, key=lambda r: r['mjd']))
@@ -196,17 +200,12 @@ def choose(rows, limit=8):
                          'A local wavelength pair is available for viewing, but its apertures do not both pass the measurement checks.'))
 
 
-def select_observations(search, target_id=None, candidate_limit=36, radius_arcsec=12.4, limit=8, *, offline=False, progress=lambda *args: None):
-    target = resolve_target(search, target_id)
-    planned = candidate_plan(search, candidate_limit)
-    rows = []
-    for i, obs in enumerate(planned):
-        progress(i, len(planned), f'Checking local bands and quality: {i+1}/{len(planned)}')
-        rows.append(inspect_observation(obs, search, target, radius_arcsec, offline=offline))
-    return dict(method='target-local-selection-1', checked_at=datetime.now(timezone.utc).isoformat(),
+def selection_summary(search, target_id, candidate_limit, radius_arcsec, rows, total, complete, limit=8):
+    return dict(method='target-local-selection-2', checked_at=datetime.now(timezone.utc).isoformat(),
                 search_id=search['id'], target_id=target_id, radius_arcsec=radius_arcsec,
-                candidate_limit=candidate_limit, inspected=len(rows), candidates=rows,
-                position_method='catalogue_proper_motion_per_epoch' if target else 'fixed_ICRS_search_center',
+                candidate_limit=candidate_limit, inspected=len(rows), planned=total, complete=complete, candidates=rows,
+                ranking='aperture-quality-then-max-baseline-1',
+                position_method='catalogue_proper_motion_per_epoch' if target_id else 'fixed_ICRS_search_center',
                 **choose(rows, limit), limitations=[
                     'A bounded sample across detectors, not an exhaustive search of the archive.',
                     'WCS-WAVE matching is a browsing heuristic, not a full response calibration.',
@@ -215,11 +214,37 @@ def select_observations(search, target_id=None, candidate_limit=36, radius_arcse
                     'Passing aperture checks does not establish motion, variability or a detection.'])
 
 
+def select_observations(search, target_id=None, candidate_limit=36, radius_arcsec=12.4, limit=8, *,
+                        offline=False, progress=lambda *args: None):
+    target = resolve_target(search, target_id)
+    planned = candidate_plan(search, candidate_limit)
+    results = {}
+    progress(0, len(planned), 'Downloading observations in parallel')
+    # Only this coordinator publishes state; worker threads never mutate a manifest.
+    with ThreadPoolExecutor(max_workers=4, thread_name_prefix='spherex-download') as pool:
+        pending = {pool.submit(inspect_observation, obs, search, target, radius_arcsec, offline=offline): obs for obs in planned}
+        for future in as_completed(pending):
+            obs = pending[future]
+            try:
+                row = future.result()
+            except Exception as exc:
+                row = dict(id=obs['id'], band=obs['band'], mjd=obs['mjd'], date=obs['date'],
+                           aperture_valid=False, central_valid=False, local_coverage=0., spectral_valid=False,
+                           reason=f'{type(exc).__name__}: {exc}')
+            results[obs['id']] = row
+            rows = [results[o['id']] for o in planned if o['id'] in results]
+            progress(len(rows), len(planned), 'Downloading observations in parallel')
+    rows = [results[o['id']] for o in planned]
+    return selection_summary(search, target_id, candidate_limit, radius_arcsec, rows, len(planned), True, limit)
+
+
 def build_selected_analysis(id, search, target_id=None, candidate_limit=36, radius_arcsec=12.4):
     try:
         def progress(done, total, message):
-            store.put('job', id, dict(id=id, status='running', completed=done, total=total, phase='selection', message=message))
+            store.put('job', id, dict(id=id, status='running', completed=done, total=total, phase='selection',
+                                     message=message))
         selection = select_observations(search, target_id, candidate_limit, radius_arcsec, progress=progress)
+        selection['preparation'] = 'recommended_series'
         store.put('selection', id, dict(id=id, **selection))
         if not selection['selected_ids']:
             raise ValueError('No usable local image was found in the inspected sample. Try another field, release or manual selection.')

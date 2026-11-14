@@ -28,10 +28,13 @@ def main():
         else:raise TimeoutError('Automatic selection did not finish within 15 minutes.')
         response=client.get('/api/analyses/'+id);response.raise_for_status();manifest=response.json()
         report=manifest['selection']
-        assert report['method']=='target-local-selection-1'
+        assert report['method']=='target-local-selection-2'
         assert report['inspected']<=36 and 1<=len(manifest['frames'])<=8
+        assert report['complete'] and not manifest['provisional']
+        assert report['preparation']=='recommended_series'
         assert report['target_id']=='epsilon-indi-b'
-        assert all(f['id'] in report['selected_ids'] for f in manifest['frames'])
+        assert {f['id'] for f in manifest['frames']}<=set(report['selected_ids'])
+        assert len(manifest['frames'])+len(manifest['failures'])==len(report['selected_ids'])
         response=client.get('/api/selections/'+id);response.raise_for_status()
         assert response.json()['candidates']==report['candidates']
         for f in manifest['frames']:
@@ -39,7 +42,7 @@ def main():
         export=client.get('/api/analyses/'+id+'/export');export.raise_for_status()
         assert export.json()['selection']==report
         output=dict(status='passed',health=health,analysis_id=id,selection_status=report['status'],
-                    prepared=len(manifest['frames']),inspected=report['inspected'],
+                    prepared=len(manifest['frames']),recommended=len(report['selected_ids']),inspected=report['inspected'],
                     baseline_days=report.get('baseline_days'),elapsed_seconds=round(time.monotonic()-started,2),
                     checks=['current backend fingerprint','real process queue','bounded local FITS checks',
                             'target binding','prepared images','persistent selection report','manifest export'])

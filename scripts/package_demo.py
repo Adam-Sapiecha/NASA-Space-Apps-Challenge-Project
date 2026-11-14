@@ -29,6 +29,8 @@ def main():
     ids={t['analysis_id'] for t in report['targets']} | {spectral.get('id') or spectral['analysis_id']}
     motion=json.loads((ROOT/'frontend/src/motionShowcase.json').read_text(encoding='utf-8'))
     ids.add(motion['analysis_id'])
+    prediction=json.loads((ROOT/'frontend/public/prediction-demo/report.json').read_text(encoding='utf-8'))
+    ids.add(prediction['analysis_id'])
     records=[];files={};missing=[]
     for id in sorted(ids):
         manifest=store.get('analysis',id)

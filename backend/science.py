@@ -20,6 +20,18 @@ from backend.store import ROOT, put
 PIPELINE_VERSION = "0.2.0"
 BAD_FLAGS = {"OVERFLOW", "SUR_ERROR", "NONFUNC", "MISSING_DATA", "HOT", "COLD", "NONLINEAR"}
 
+def replace_ready_file(source, destination):
+    # Windows readers/scanners can briefly hold the previous snapshot open.
+    # Keep it intact until the complete replacement can be installed.
+    for attempt in range(6):
+        try:
+            source.replace(destination)
+            return
+        except PermissionError:
+            if attempt == 5:
+                raise
+            time.sleep(.05 * 2**attempt)
+
 def output_wcs(ra, dec, fov_arcmin, pixels):
     w = WCS(naxis=2)
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
@@ -124,7 +136,7 @@ def read_frame(path, coord, target_wcs, pixels):
             detector=str(header.get("DETECTOR", "unknown")),
         )
 
-def build_analysis(id, search, observation_ids, previous=None, selection=None):
+def build_analysis(id, search, observation_ids, previous=None, selection=None, initial_failures=None, workspace=None):
     folder = ROOT / "analyses" / id
     folder.mkdir(parents=True, exist_ok=True)
     try:
@@ -136,7 +148,7 @@ def build_analysis(id, search, observation_ids, previous=None, selection=None):
         pixels = max(32, int(np.ceil(search["fov_arcmin"]*60/6.2)))
         wcs = output_wcs(search["ra"], search["dec"], search["fov_arcmin"], pixels)
         coord = SkyCoord(search["ra"], search["dec"], unit="deg")
-        frames, arrays, failures = [], [], []
+        frames, arrays, failures = [], [], list(initial_failures or [])
         reusable = {f['id']: f for f in previous['frames']} if previous else {}
         for i, obs in enumerate(selected):
             put("job", id, dict(id=id, status="running", completed=i, total=len(selected), message=f"Pobieranie i wyrównanie {i+1}/{len(selected)}"))
@@ -145,7 +157,11 @@ def build_analysis(id, search, observation_ids, previous=None, selection=None):
                     prior_folder = ROOT / 'analyses' / previous['id']
                     if all((prior_folder / f"{obs['id']}.{suffix}").exists() for suffix in ('npz', 'fits')):
                         for suffix in ('npz', 'fits'):
-                            shutil.copyfile(prior_folder / f"{obs['id']}.{suffix}", folder / f"{obs['id']}.{suffix}")
+                            if prior_folder != folder:
+                                shutil.copyfile(prior_folder / f"{obs['id']}.{suffix}", folder / f"{obs['id']}.{suffix}")
+                        display_cache = prior_folder / f"{obs['id']}.display.npz"
+                        if prior_folder != folder and display_cache.exists():
+                            shutil.copyfile(display_cache, folder / display_cache.name)
                         array = fits.getdata(folder / f"{obs['id']}.fits").astype(float)
                         frames.append(dict(reusable[obs['id']], image=f"/api/analyses/{id}/frames/{obs['id']}.png"))
                         arrays.append(array)
@@ -179,10 +195,14 @@ def build_analysis(id, search, observation_ids, previous=None, selection=None):
         for frame, array in zip(frames, arrays):
             put('job', id, dict(id=id, status='running', completed=len(selected), total=len(selected), message='Tworzenie podglądów ze wspólną skalą jasności'))
             # Canvas uses top-left origin; FITS uses lower-left. Reverse rows for PNG.
-            Image.fromarray(stretch_rgba(array, low, high)[::-1]).save(folder / f"{frame['id']}.png")
+            temp = folder / f"{frame['id']}.tmp"
+            Image.fromarray(stretch_rgba(array, low, high)[::-1]).save(temp, format='PNG')
+            replace_ready_file(temp, folder / f"{frame['id']}.png")
+            frame['image'] += '?v=final'
         from backend.orientation import footprint
         manifest = dict(id=id, schema_version=2, pipeline_version=PIPELINE_VERSION,
                         created_at=datetime.now(timezone.utc).isoformat(), search=search,
+                        provisional=False, revision=(previous or {}).get('revision', 0)+1,
                         frames=frames, failures=failures, pixels=pixels, wcs=dict(wcs.to_header()), footprint=footprint(wcs, pixels),
                         processing=dict(background="not_subtracted", psf="not_matched", uncertainty="not_propagated_to_reprojected_images", interpolation="bilinear"),
                         display=dict(low=float(low), high=float(high), stretch="asinh", common_scale=True),
@@ -193,7 +213,11 @@ def build_analysis(id, search, observation_ids, previous=None, selection=None):
                         acknowledgement="This publication makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the National Aeronautics and Space Administration.")
         if selection is not None:
             manifest['selection'] = selection
-        (folder / "manifest.json").write_text(json.dumps(manifest, indent=2, allow_nan=False), encoding="utf-8")
+        if workspace is not None:
+            manifest['workspace'] = workspace
+        temp_manifest = folder / 'manifest.tmp'
+        temp_manifest.write_text(json.dumps(manifest, indent=2, allow_nan=False), encoding='utf-8')
+        replace_ready_file(temp_manifest, folder / 'manifest.json')
         put("analysis", id, manifest)
         put("job", id, dict(id=id, status="complete", completed=len(selected), total=len(selected), message="Porównanie gotowe"))
     except Exception as exc:

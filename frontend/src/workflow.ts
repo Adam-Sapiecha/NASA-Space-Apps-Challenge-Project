@@ -1,4 +1,14 @@
-import type {Frame,Observation,Sample,Selection} from './types';
+import type {Analysis,Frame,Observation,Sample,Selection} from './types';
+
+// Older gallery analyses may contain every inspected candidate. Restore their
+// recommended set for viewing too, without changing the saved scientific data.
+export function recommendedAnalysis(analysis:Analysis):Analysis{
+ if(!analysis.selection||analysis.provisional||analysis.workspace)return analysis;
+ const selected=new Set(analysis.selection.selected_ids);
+ const frames=analysis.frames.filter(frame=>selected.has(frame.id));
+ if(!frames.length)return analysis;
+ return {...analysis,frames,failures:analysis.failures.filter(f=>selected.has(f.observation))};
+}
 
 // Archive metadata describes a detector range, not the band at a source.
 export function proposeSeries(observations:Observation[], limit=8):Observation[]{
@@ -23,7 +33,9 @@ export function closeBands(a:Band,b:Band):boolean{
 }
 
 export function comparisonSeries(frames:Frame[], sample:Sample|null=null, selection:Selection|null=null):number[]{
- // Maximum mutually compatible subset; analyses are limited to twelve frames.
+ // In one wavelength dimension, a compatible set is determined by its two
+ // wavelength extremes. Testing every extreme pair avoids exponential search
+ // when the automatic gallery contains up to 48 observations.
  const local=(i:number)=>sample?.frames.find(f=>f.id===frames[i].id);
  const checked=(i:number)=>selection?.candidates.find(row=>row.id===frames[i].id);
  const bands=(i:number)=>sample?local(i)!:selection?checked(i)!:frames[i];
@@ -34,15 +46,17 @@ export function comparisonSeries(frames:Frame[], sample:Sample|null=null, select
   const span=subset.length?frames[subset.at(-1)!].mjd-frames[subset[0]].mjd:0;
   if(subset.length>best.length||subset.length===best.length&&span>bestSpan){best=subset;bestSpan=span}
  };
- const visit=(chosen:number[],remaining:number[])=>{
-  consider(chosen);
-  if(chosen.length+remaining.length<best.length)return;
-  for(let k=0;k<remaining.length;k++){
-   const i=remaining[k],x=bands(i);
-   if(chosen.every(j=>frames[i].mjd!==frames[j].mjd&&closeBands(x,bands(j))))visit([...chosen,i],remaining.slice(k+1));
+ const ordered=eligible.filter(i=>bands(i)&&closeBands(bands(i),bands(i))).sort((a,b)=>bands(a).wavelength_um!-bands(b).wavelength_um!||a-b);
+ for(let l=0;l<ordered.length;l++)for(let r=l+1;r<ordered.length;r++){
+  const left=ordered[l],right=ordered[r];
+  if(frames[left].mjd===frames[right].mjd||!closeBands(bands(left),bands(right)))continue;
+  const times=new Set([frames[left].mjd,frames[right].mjd]),subset=[left,right];
+  for(let k=l+1;k<r;k++){
+   const i=ordered[k];
+   if(!times.has(frames[i].mjd)&&closeBands(bands(i),bands(left))&&closeBands(bands(i),bands(right))){times.add(frames[i].mjd);subset.push(i)}
   }
- };
- visit([],eligible.sort((a,b)=>frames[a].mjd-frames[b].mjd));
+  consider(subset.sort((a,b)=>frames[a].mjd-frames[b].mjd||a-b));
+ }
  return best.length>=2?best:[];
 }
 

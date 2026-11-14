@@ -65,3 +65,25 @@ def test_previews_are_cached_and_do_not_require_source_again(saved_field):
     first = make_previews(saved_field, 'all')
     second = make_previews(saved_field, 'all')
     assert first == second
+
+
+def test_independent_display_settings_can_prepare_previews_concurrently(saved_field):
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        pending=[pool.submit(make_previews,saved_field,'all',mode) for mode in ('faint','full')]
+        outputs=[future.result() for future in pending]
+    assert outputs[0]['id']!=outputs[1]['id']
+    for frame in saved_field['frames']:
+        with np.load(store.ROOT/'analyses'/'test'/f"{frame['id']}.display.npz") as data:
+            assert data['image'].shape==(32,32)
+        for result in outputs:
+            Image.open(store.ROOT/'previews'/result['id']/f"{frame['id']}.png").verify()
+    assert np.isnan(fits.getdata(store.ROOT/'analyses'/'test'/f"{saved_field['frames'][0]['id']}.fits")[16,16])
+
+
+def test_pair_display_limits_do_not_depend_on_unrelated_cached_observations(saved_field):
+    id=saved_field['frames'][0]['id']
+    output=make_previews(saved_field,'all','standard',frame_ids=[id])
+    assert output['frame_ids']==[id] and [frame['id'] for frame in output['frames']]==[id]
+    assert make_previews(saved_field,'all','standard',frame_ids=[id,id])==output
+    with pytest.raises(ValueError):make_previews(saved_field,frame_ids=['foreign'])
