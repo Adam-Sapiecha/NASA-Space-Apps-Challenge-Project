@@ -1,0 +1,39 @@
+# Requires a Linux Docker host and a domain whose DNS points at that host.
+# This file prepares deployment; it does not register a domain or provision a VM.
+services:
+  app:
+    build: .
+    environment:
+      SPHEREX_DATA_DIR: /app/data
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    volumes:
+      - observations:/app/data
+    restart: unless-stopped
+    mem_limit: 3g
+    cpus: 2
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+  web:
+    image: caddy:2-alpine
+    environment:
+      SPHEREX_DOMAIN: ${SPHEREX_DOMAIN:?Set SPHEREX_DOMAIN to the public hostname}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  observations:
+  certificates:
+  caddy-config:

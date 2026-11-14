@@ -1,0 +1,42 @@
+{
+  "analysis_id": "motion3iatlas20251214d6",
+  "object": "3I/ATLAS",
+  "minutes": 97.95160007779486,
+  "predicted_separation_arcmin": 4.771340083565925,
+  "frames": [
+    {
+      "id": "4dbf2e7aeee1e29a5ab5",
+      "date": "2025-12-14T11:00:48.129",
+      "mjd": 61023.459556571,
+      "point": {
+        "x": 0.3123110648221764,
+        "y": 0.5655543770913206
+      },
+      "image": "/motion-demo/1.png",
+      "original": "/motion-demo/1-original.png",
+      "fits": "/motion-demo/1.fits",
+      "archive_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/dr1/level2/2025W50_2A/l2b-v27-2026-210/6/level2_2025W50_2A_0741_2D6_spx_l2b-v27-2026-210.fits",
+      "native_fits_sha256": "26fa463d5938cbb7de327e0297a98edb1e0688f52be9c75dc95f18f41f23021d",
+      "displayed_fits_sha256": "253da5f5808f706647bbb3e5535d6b1577ff4c94c01fdf463f0f2ee9b1fe7897",
+      "wavelength_um": 4.482060007617026,
+      "bandwidth_um": 0.035564085481453483
+    },
+    {
+      "id": "bcd85c4c9d47f6c3a1db",
+      "date": "2025-12-14T12:38:45.224",
+      "mjd": 61023.527578515495,
+      "point": {
+        "x": 0.6876810575590554,
+        "y": 0.4344343468997238
+      },
+      "image": "/motion-demo/2.png",
+      "original": "/motion-demo/2-original.png",
+      "fits": "/motion-demo/2.fits",
+      "archive_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/dr1/level2/2025W50_2A/l2b-v27-2026-210/6/level2_2025W50_2A_0755_2D6_spx_l2b-v27-2026-210.fits",
+      "native_fits_sha256": "83dd90533af06d6aa213f84f3801f7530cffabb72346014be02cfa79677d6872",
+      "displayed_fits_sha256": "ede506cab390d855048e44d09204acbd9aaadde4b94d32e2c8a517f233f39f53",
+      "wavelength_um": 4.613741266934647,
+      "bandwidth_um": 0.03664434247414335
+    }
+  ]
+}

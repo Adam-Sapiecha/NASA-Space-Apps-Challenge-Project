@@ -1,0 +1,12 @@
+.venv/
+.cache/
+data/
+node_modules/
+frontend/dist/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.tsbuildinfo
+.env
+# Isolated, unpublished Sites staging copy. Canonical replay is frontend/public/demo/.
+submission-demo-site-20261114/

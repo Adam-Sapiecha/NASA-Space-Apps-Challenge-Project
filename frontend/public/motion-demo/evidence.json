@@ -1,0 +1,183 @@
+{
+  "analysis_id": "motion3iatlas20251214d6",
+  "object": "3I/ATLAS",
+  "minutes": 97.95160007779486,
+  "predicted_separation_arcmin": 4.771340083565925,
+  "image_pixels": 117,
+  "field_arcmin": 12,
+  "measured_peak_separation_pixels": 46.8187996428785,
+  "stationary_controls": [
+    {
+      "a_peak": [
+        71,
+        88
+      ],
+      "b_peak": [
+        71,
+        89
+      ],
+      "offset_pixels": 1.0
+    },
+    {
+      "a_peak": [
+        62,
+        93
+      ],
+      "b_peak": [
+        62,
+        94
+      ],
+      "offset_pixels": 1.0
+    },
+    {
+      "a_peak": [
+        86,
+        81
+      ],
+      "b_peak": [
+        85,
+        79
+      ],
+      "offset_pixels": 2.23606797749979
+    },
+    {
+      "a_peak": [
+        100,
+        76
+      ],
+      "b_peak": [
+        100,
+        76
+      ],
+      "offset_pixels": 0.0
+    },
+    {
+      "a_peak": [
+        48,
+        62
+      ],
+      "b_peak": [
+        46,
+        61
+      ],
+      "offset_pixels": 2.23606797749979
+    }
+  ],
+  "frames": [
+    {
+      "id": "4dbf2e7aeee1e29a5ab5",
+      "date": "2025-12-14T11:00:48.129",
+      "mjd": 61023.459556571,
+      "point": {
+        "x": 0.3123110648221764,
+        "y": 0.5655543770913206
+      },
+      "image": "/motion-demo/1.png",
+      "original": "/motion-demo/1-original.png",
+      "fits": "/motion-demo/1.fits",
+      "archive_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/dr1/level2/2025W50_2A/l2b-v27-2026-210/6/level2_2025W50_2A_0741_2D6_spx_l2b-v27-2026-210.fits",
+      "native_fits_sha256": "26fa463d5938cbb7de327e0297a98edb1e0688f52be9c75dc95f18f41f23021d",
+      "displayed_fits_sha256": "253da5f5808f706647bbb3e5535d6b1577ff4c94c01fdf463f0f2ee9b1fe7897",
+      "wavelength_um": 4.482060007617026,
+      "bandwidth_um": 0.035564085481453483
+    },
+    {
+      "id": "bcd85c4c9d47f6c3a1db",
+      "date": "2025-12-14T12:38:45.224",
+      "mjd": 61023.527578515495,
+      "point": {
+        "x": 0.6876810575590554,
+        "y": 0.4344343468997238
+      },
+      "image": "/motion-demo/2.png",
+      "original": "/motion-demo/2-original.png",
+      "fits": "/motion-demo/2.fits",
+      "archive_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/dr1/level2/2025W50_2A/l2b-v27-2026-210/6/level2_2025W50_2A_0755_2D6_spx_l2b-v27-2026-210.fits",
+      "native_fits_sha256": "83dd90533af06d6aa213f84f3801f7530cffabb72346014be02cfa79677d6872",
+      "displayed_fits_sha256": "ede506cab390d855048e44d09204acbd9aaadde4b94d32e2c8a517f233f39f53",
+      "wavelength_um": 4.613741266934647,
+      "bandwidth_um": 0.03664434247414335
+    }
+  ],
+  "processing": {
+    "geometry": "Fixed ICRS tangent-plane WCS for both exposures; no target tracking or injected source.",
+    "background_subtraction": "One spatially constant median per exposure, for display only.",
+    "background_levels": [
+      0.5048511624336243,
+      0.6647619605064392
+    ],
+    "common_display_limits": [
+      -0.11662528693675996,
+      1.091255985021591
+    ],
+    "stretch": "asinh, identical in both exposures"
+  },
+  "evidence": {
+    "analysis_id": "motion3iatlas20251214d6",
+    "object": "3I/ATLAS",
+    "evidence": [
+      {
+        "frame_id": "4dbf2e7aeee1e29a5ab5",
+        "date": "2025-12-14T11:00:48.129",
+        "prediction_ra": 166.976507,
+        "prediction_dec": 5.226494,
+        "point": {
+          "x": 0.3123110648221764,
+          "y": 0.5655543770913206
+        },
+        "predicted_pixel": [
+          36.04039458419464,
+          50.33013788031549
+        ],
+        "local_peak_pixel": [
+          37,
+          50
+        ],
+        "peak_above_local_background": 1.1774237155914307,
+        "local_background_mad": 0.04711098223924637,
+        "peak_offset_pixels": 1.0148071610223242,
+        "wavelength_um": 4.482060007617026,
+        "bandwidth_um": 0.035564085481453483
+      },
+      {
+        "frame_id": "bcd85c4c9d47f6c3a1db",
+        "date": "2025-12-14T12:38:45.224",
+        "prediction_ra": 166.901118,
+        "prediction_dec": 5.252718,
+        "point": {
+          "x": 0.6876810575590554,
+          "y": 0.4344343468997238
+        },
+        "predicted_pixel": [
+          79.95868373440948,
+          65.67118141273231
+        ],
+        "local_peak_pixel": [
+          81,
+          66
+        ],
+        "peak_above_local_background": 4.743531703948975,
+        "local_background_mad": 0.15066440403461456,
+        "peak_offset_pixels": 1.0919987309132342,
+        "wavelength_um": 4.613741266934647,
+        "bandwidth_um": 0.03664434247414335
+      }
+    ],
+    "source": "https://irsa.ipac.caltech.edu/applications/MOST/",
+    "source_file_sha256": "a4010978bb50d069a6355424470540bceb6a607d8ae520fc518e3e04446de581",
+    "limitations": [
+      "MOST positions are predictions, not centroid measurements.",
+      "Local peak is a diagnostic, not a detection significance or identity confirmation.",
+      "Images use a fixed celestial WCS, without following the predicted comet.",
+      "Bands, background, PSF and stationary sources must be checked before claiming motion."
+    ]
+  },
+  "limitations": [
+    "Known comet example, not a new discovery or automated motion detection.",
+    "Positions A/B are MOST ephemerides. Local peaks are exploratory checks, not precision astrometry.",
+    "Different local wavelengths and PSFs: brightness changes cannot be interpreted as intrinsic variability.",
+    "Peak/background ratios are display diagnostics, not calibrated detection significances."
+  ],
+  "acknowledgement": "This publication makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the National Aeronautics and Space Administration.",
+  "most_response": "/motion-demo/most-response.json"
+}

@@ -1,0 +1,7 @@
+{$SPHEREX_DOMAIN} {
+    encode gzip zstd
+    request_body {
+        max_size 4MB
+    }
+    reverse_proxy app:8000
+}
