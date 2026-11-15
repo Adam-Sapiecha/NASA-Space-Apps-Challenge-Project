@@ -10,3 +10,8 @@ __pycache__/
 .env
 # Isolated, unpublished Sites staging copy. Canonical replay is frontend/public/demo/.
 submission-demo-site-20261114/
+
+# Keep project notes local; publish only the main README.
+*.md
+*.MD
+!/README.md
