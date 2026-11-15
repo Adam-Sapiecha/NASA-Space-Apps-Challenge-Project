@@ -1,0 +1,29 @@
+name: spherex
+services:
+  app:
+    build:
+      context: .
+      args:
+        VITE_BASE_PATH: ${SPHEREX_URL_PREFIX:-/spherex}/
+    image: spherex:${SPHEREX_RELEASE:-local}
+    ports:
+      - "127.0.0.1:${SPHEREX_PORT:-8093}:8000"
+    environment:
+      SPHEREX_DATA_DIR: /app/data
+      SPHEREX_RELEASE: ${SPHEREX_RELEASE:-local}
+      SPHEREX_URL_PREFIX: ${SPHEREX_URL_PREFIX:-/spherex}
+      SPHEREX_PUBLIC_BASE_URL: ${SPHEREX_PUBLIC_BASE_URL:?Set the public application URL}
+      SPHEREX_CORS_ORIGINS: ${SPHEREX_CORS_ORIGINS:?Set the Pages origin}
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    volumes:
+      - ${SPHEREX_DATA_PATH:-./data}:/app/data
+    restart: unless-stopped
+    mem_limit: 2g
+    cpus: 1.5
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3

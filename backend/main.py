@@ -1,4 +1,5 @@
 import re
+import os
 import uuid
 import hashlib
 import logging
@@ -316,7 +317,7 @@ def irsa_hips():
 
 @app.get('/api/irsa/hips/layers/{index}/properties')
 def irsa_layer_properties(index:int,request:Request):
-    try:return Response(layer_properties(index,str(request.base_url).rstrip('/')),media_type='text/plain')
+    try:return Response(layer_properties(index,os.environ.get('SPHEREX_PUBLIC_BASE_URL') or str(request.base_url).rstrip('/')),media_type='text/plain')
     except ValueError as exc:raise HTTPException(404,str(exc)) from exc
     except Exception as exc:raise HTTPException(502,'Metadane mapy SPHEREx są niedostępne.') from exc
 
@@ -475,7 +476,7 @@ def record(kind, id, *, allow_provisional=False):
 
 @app.get("/api/health")
 def health():
-    return dict(status="ok", pipeline=PIPELINE_VERSION, source_sha256=LOADED_SOURCE,
+    return dict(status="ok", pipeline=PIPELINE_VERSION, release=os.environ.get("SPHEREX_RELEASE", "local"), source_sha256=LOADED_SOURCE,
                 code_changed=source_fingerprint()!=LOADED_SOURCE, started_at=STARTED_AT)
 
 @app.get('/api/targets')

@@ -1,4 +1,4 @@
-import type {Analysis,Frame,Observation,Sample} from './types';
+import type {Analysis,Observation,Sample} from './types';
 import {bestPair} from './types.ts';
 import {closeBands,comparisonSeries} from './workflow.ts';
 

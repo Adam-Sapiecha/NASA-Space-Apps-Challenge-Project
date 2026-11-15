@@ -8,4 +8,5 @@ import '@fontsource/ibm-plex-sans/latin-ext-500.css';
 import '@fontsource/ibm-plex-sans/latin-600.css';
 import '@fontsource/ibm-plex-sans/latin-ext-600.css';
 import './research.css';
+import './workspace.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);

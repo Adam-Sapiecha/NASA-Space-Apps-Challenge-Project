@@ -107,23 +107,6 @@ class Position(Point):
     frame_id: str = Field(max_length=100)
 
 
-@router.post('/api/analyses/{id}/auto-motion',status_code=202)
-def automatic_motion(id: str):
-    return enqueue('auto_motion',record('analysis',id),{})
-
-
-@router.get('/api/analyses/{id}/motion-previews/{filename}')
-def automatic_motion_preview(id: str,filename: str):
-    import re
-    from fastapi.responses import FileResponse
-    manifest=record('analysis',id)
-    if not re.fullmatch(r'[a-f0-9]{20}\.png',filename) or filename[:-4] not in {f['id'] for f in manifest['frames']}:
-        raise HTTPException(404,'Nie znaleziono podglądu.')
-    path=store.ROOT/'analyses'/id/(filename[:-4]+'.motion.png')
-    if not path.exists():raise HTTPException(404,'Nie znaleziono podglądu.')
-    return FileResponse(path)
-
-
 class Motion(Dates):
     positions: list[Position] = Field(min_length=3, max_length=12)
     systematic_floor_arcsec: float = Field(default=2, ge=.1, le=30, allow_inf_nan=False)

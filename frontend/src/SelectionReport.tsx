@@ -1,3 +1,4 @@
+import {apiUrl} from './urls.ts';
 import {t} from './i18n.ts';
 import {date,type Analysis} from './types';
 
@@ -19,7 +20,7 @@ export default function SelectionReport({analysis,activeIds}:{analysis:Analysis;
     {report.candidates.map(row=><tr key={row.id} className={report.selected_ids.includes(row.id)?'selected':''}><td>{date(row.date)}</td><td>{row.band.replace('SPHEREx-','')}</td><td>{row.wavelength_um?.toFixed(4)??'—'}</td><td>{t(row.aperture_valid?'ważna':'nieważna')}</td><td>{t(row.reason??row.flagged?.join(', ')??'—')}{row.cutout_fov_arcmin>analysis.search.fov_arcmin&&<> · {t('Powiększony wycinek:')} {row.cutout_fov_arcmin}′</>}</td></tr>)}
    </tbody></table></div>
    <ul>{report.limitations.map(item=><li key={item}>{t(item)}</li>)}</ul>
-   <a href={`/api/analyses/${analysis.id}/export`}>{t('Pobierz pełne parametry i kontrolę doboru (JSON)')}</a>
+   <a href={apiUrl(`/api/analyses/${analysis.id}/export`)}>{t('Pobierz pełne parametry i kontrolę doboru (JSON)')}</a>
   </details>
  </section>;
 }

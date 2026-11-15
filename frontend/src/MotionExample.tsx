@@ -1,22 +1,45 @@
+import {assetUrl} from './urls.ts';
 import {t,locale,withLanguage} from './i18n.ts';
 import {useEffect,useState} from 'react';
-import {ArrowRight,Pause,Play,X} from 'lucide-react';
+import {ArrowRight} from 'lucide-react';
 import motion from './motionShowcase.json';
 
-export default function MotionExample({onClose,onPredict}:{onClose:()=>void;onPredict?:()=>void}){
- const [playing,setPlaying]=useState(true),[epoch,setEpoch]=useState(0),[markers,setMarkers]=useState(true),[original,setOriginal]=useState(false),[side,setSide]=useState(false);
- useEffect(()=>{motion.frames.forEach(f=>{for(const src of [f.image,f.original]){const img=new Image();img.src=src}})},[]);
- useEffect(()=>{if(!playing||side)return;const id=setInterval(()=>setEpoch(v=>1-v),1000);return()=>clearInterval(id)},[playing,side]);
+type Props={onInspect:()=>void;onField:()=>void};
+export default function MotionExample({onInspect,onField}:Props){
+ const [original,setOriginal]=useState(false);
+ const [ready,setReady]=useState(false),[failed,setFailed]=useState(false);
+ useEffect(()=>{let live=true;Promise.all(motion.frames.map(frame=>new Promise<void>((resolve,reject)=>{const img=new Image();img.onload=()=>resolve();img.onerror=reject;img.src=assetUrl(frame.image)}))).then(()=>{if(live)setReady(true)}).catch(()=>{if(live)setFailed(true)});return()=>{live=false}},[]);
  const time=(i:number)=>motion.frames[i].date.slice(11,19)+' UTC';
- const image=(i:number)=><div className="motion-photo"><img src={original?motion.frames[i].original:motion.frames[i].image} alt={`${t('Rzeczywista obserwacja SPHEREx 3I/ATLAS')}, ${t('14 grudnia 2025')}, ${time(i)}`} width="117" height="117"/>{markers&&motion.frames.map((f,j)=><span key={f.id} className="motion-reference" style={{left:`${100*f.point.x}%`,top:`${100*f.point.y}%`}}><span>{j?'B':'A'}</span></span>)}<span className="motion-photo-date">{i?'B':'A'} · {time(i)}</span></div>;
+ const image=(i:number)=><div className="motion-photo">
+  <img src={assetUrl(original?motion.frames[i].original:motion.frames[i].image)} alt={`${t('Obserwacja 3I/ATLAS')}, ${t('14 grudnia 2025')}, ${time(i)}`} width="117" height="117"/>
+  {motion.frames.map((frame,j)=><span key={frame.id} className="motion-reference" style={{left:`${100*frame.point.x}%`,top:`${100*frame.point.y}%`}}><span>{j?'B':'A'}</span></span>)}
+  <span className="motion-photo-date">{i?'B':'A'} · {time(i)}</span>
+ </div>;
  return <section className="motion-example" id="motion-example" aria-labelledby="motion-title">
-  <div className="motion-heading"><div><span className="motion-eyebrow">{t("Rzeczywiste zdjęcia SPHEREx · znana kometa")}</span><h2 id="motion-title">{t("Zobacz, jak przesuwa się 3I/ATLAS")}</h2><p>{t("Patrz na jasną plamkę: z pozycji A przechodzi do B. Znaczniki A i B pozostają w tych samych miejscach.")}</p></div><button className="subtle" onClick={onClose} aria-label={t("Zamknij pokaz ruchu")}><X size={18}/></button></div>
-  {onPredict&&<button className="motion-predict-link" onClick={onPredict}>{t('Przewidź kolejną pozycję')} <ArrowRight size={15}/></button>}
-  <div className="motion-demo-body"><div>
-   <div className="motion-controls"><button className="primary" disabled={side} onClick={()=>setPlaying(v=>!v)}>{playing&&!side?<Pause size={16}/>:<Play size={16}/>} {playing&&!side?t('Zatrzymaj'):t('Odtwórz ruch')}</button><button aria-pressed={side} onClick={()=>setSide(v=>!v)}>{side?t('Miganie A/B'):t('Dwa zdjęcia obok siebie')}</button><label><input type="checkbox" checked={markers} onChange={e=>setMarkers(e.target.checked)}/>  {t("Pokaż pozycje A i B")}</label></div>
-   <div className={`motion-images ${side?'motion-side':''}`}>{side?<>{image(0)}{image(1)}</>:image(epoch)}</div>
-   <div className="motion-epochs" aria-label={t("Wybierz obserwację")}>{motion.frames.map((f,i)=><button key={f.id} aria-pressed={!side&&epoch===i} onClick={()=>{setPlaying(false);setSide(false);setEpoch(i)}}>{i?'B':'A'} · {time(i)}</button>)}</div>
-  </div><aside className="motion-result"><span>{t("14 grudnia 2025")}</span><strong>{Math.round(motion.minutes)}  {t("minut")}</strong><p>{t("między obserwacjami")}</p><strong>{motion.predicted_separation_arcmin.toLocaleString(locale(),{maximumFractionDigits:2})}′</strong><p>{t("przesunięcia według efemeryd")}</p><p>{t("To dwa zdjęcia tego samego fragmentu nieba. Nie przesuwamy obiektu w obrazie.")}</p><a className="motion-workbench" href="#field-search" onClick={()=>document.getElementById('field-search')?.scrollIntoView({block:'start'})}>{t('Zbadaj własne współrzędne')} <ArrowRight size={15}/></a><a className="motion-workbench" href={withLanguage(`/?analysis=${motion.analysis_id}&a=0&b=1&series=0&interface=advanced`)}>{t("Zbadaj te obserwacje")} <ArrowRight size={15}/></a></aside></div>
-  <details className="motion-method"><summary>{t("Dane źródłowe i sposób wyświetlania")}</summary><p>{t("Zdjęcia SPHEREx DR1 z 14.12.2025, detektor D6, wspólna siatka współrzędnych nieba. Dla czytelności odjęto osobny, stały poziom tła w każdej klatce i użyto wspólnej skali kontrastu. Nie dodano ani nie przesunięto źródeł. Pozycje A/B pochodzą z efemeryd IRSA MOST; nie są wynikiem automatycznej detekcji.")}</p><label><input type="checkbox" checked={original} onChange={e=>setOriginal(e.target.checked)}/>  {t("Pokaż obrazy bez odejmowania poziomu tła")}</label><p>{t("Pasmo w centrum: A")} {motion.frames[0].wavelength_um.toFixed(3)} µm, B {motion.frames[1].wavelength_um.toFixed(3)}  {t("µm. Różnice pasma i PSF nie pozwalają interpretować zmian jasności jako zmienności komety. To pokaz znanego obiektu, bez nowego odkrycia ani precyzyjnej astrometrii.")}</p><div className="context-actions"><a href="https://irsa.ipac.caltech.edu/data/SPHEREx/docs/comet3iatlas/" target="_blank" rel="noreferrer">{t("Oficjalne obserwacje 3I/ATLAS")}</a><a href="/motion-demo/evidence.json" download>{t("Raport i pochodzenie danych")}</a>{motion.frames.map((f,i)=><a key={f.id} href={f.fits} download>{t("Wyrównany FITS")} {i?'B':'A'}</a>)}</div><p className="motion-credit">{t("Dane: NASA / JPL-Caltech / Caltech / IPAC. SPHEREx jest wspólnym projektem JPL i Caltech, finansowanym przez NASA.")}</p></details>
+  <header className="motion-heading"><div><h1 id="motion-title">3I/ATLAS <span>· {Math.round(motion.minutes)} {t('minut między obserwacjami')}</span></h1><p>{t('Obserwuj zmianę położenia między znacznikami A i B.')}</p></div><span className="dataset-label">SPHEREx DR1 · D6</span></header>
+  <div className="motion-demo-body">
+   <div className="motion-image-column">
+    <div className="motion-images motion-side" aria-busy={!ready&&!failed}>
+     {image(0)}{image(1)}
+     {!ready&&<span className="motion-loading" role={failed?'alert':'status'}>{t(failed?'Nie udało się wczytać pokazu. Otwórz zapisane obserwacje.':'Wczytuję dwie obserwacje…')}</span>}
+    </div>
+    <p className="motion-date-caption">{t('14 grudnia 2025')} · UTC</p>
+   </div>
+   <aside className="motion-result">
+    <h2>{t('Co pokazuje obraz')}</h2><p>{t('Ten sam fragment nieba w dwóch terminach. Znaczniki pokazują stałe pozycje z efemeryd.')}</p>
+    <dl><div><dt>{t('Odstęp czasu')}</dt><dd>{Math.round(motion.minutes)} {t('min')}</dd></div><div><dt>{t('Przesunięcie z efemeryd')}</dt><dd>{motion.predicted_separation_arcmin.toLocaleString(locale(),{maximumFractionDigits:2})}′</dd></div></dl>
+    <p className="motion-caution">{t('To pokaz ruchu. Różne pasma i PSF nie pozwalają z tej pary ocenić zmiany jasności komety.')}</p>
+    <div className="motion-next-actions">
+     <button className="primary" onClick={onInspect}>{t('Otwórz w czasie i pasmach')}<ArrowRight size={15}/></button>
+     <button onClick={onField}>{t('Wyszukaj własne współrzędne')}<ArrowRight size={15}/></button>
+    </div>
+   </aside>
+  </div>
+  <details className="motion-method"><summary>{t('Wyświetlanie, dane źródłowe i ograniczenia')}</summary>
+   <p>{t('Zdjęcia SPHEREx DR1 z 14.12.2025, detektor D6, wspólna siatka współrzędnych nieba. Dla czytelności odjęto osobny, stały poziom tła w każdej klatce i użyto wspólnej skali kontrastu. Nie dodano ani nie przesunięto źródeł. Pozycje A/B pochodzą z efemeryd IRSA MOST; nie są wynikiem automatycznej detekcji.')}</p>
+   <label><input type="checkbox" checked={original} onChange={event=>setOriginal(event.target.checked)}/>{t('Pokaż obrazy bez odejmowania poziomu tła')}</label>
+   <p>λ A: {motion.frames[0].wavelength_um.toFixed(3)} µm · λ B: {motion.frames[1].wavelength_um.toFixed(3)} µm. {t('To pokaz znanego obiektu, bez nowego odkrycia ani precyzyjnej astrometrii.')}</p>
+   <div className="context-actions"><a href="https://irsa.ipac.caltech.edu/data/SPHEREx/docs/comet3iatlas/" target="_blank" rel="noreferrer">{t('Oficjalne obserwacje 3I/ATLAS')}</a><a href={assetUrl('/motion-demo/evidence.json')} download>{t('Raport i pochodzenie danych')}</a>{motion.frames.map((frame,i)=><a key={frame.id} href={assetUrl(frame.fits)} download>FITS {i?'B':'A'}</a>)}<a href={withLanguage('/demo/')}>{t('Zapisana prezentacja')}</a></div>
+  </details>
  </section>;
 }

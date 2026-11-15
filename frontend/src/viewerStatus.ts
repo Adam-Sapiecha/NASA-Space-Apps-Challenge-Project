@@ -1,7 +1,7 @@
 import type {Frame,Sample,Selection} from './types';
 import {closeBands} from './workflow.ts';
 
-type Mode='side'|'lens'|'blink'|'route'|'series';
+type Mode='side'|'series';
 export type ComparisonNotice={kind:'same'|'missing'|'unknown'|'bands';location:'point'|'target'|'centre'}|null;
 
 export function comparisonNotice(frames:Frame[],a:number,b:number,mode:Mode,sample:Sample|null,selection?:Selection):ComparisonNotice{

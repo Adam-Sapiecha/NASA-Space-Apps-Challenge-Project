@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {t,getLanguage,setLanguage,withLanguage,subscribeLanguage} from '../src/i18n.ts';
 import {workspaceDefaults} from '../src/workspace.ts';
 
-test('the first visit opens real comet motion in a simple English interface',()=>{
+test('the first visit uses the simple English interface',()=>{
  assert.equal(getLanguage(),'en');
  assert.deepEqual(workspaceDefaults(new URLSearchParams()),{expert:false,motionOpen:true});
  assert.equal(t('Wyszukaj obrazy'),'Search images');

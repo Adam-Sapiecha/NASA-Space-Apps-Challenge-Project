@@ -1,3 +1,4 @@
+import {assetUrl} from './urls.ts';
 import messages from './messages.en.ts';
 
 export type Language='en'|'pl';
@@ -16,7 +17,7 @@ export const locale=()=>language==='en'?'en-GB':'pl-PL';
 export const subscribeLanguage=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
 export function setLanguage(next:Language){
  language=next;
- if(typeof document!=='undefined'){document.documentElement.lang=next;document.title=next==='en'?'SPHEREx · Sky in motion':'SPHEREx · Porównanie epok'}
+ if(typeof document!=='undefined'){document.documentElement.lang=next;document.title=next==='en'?'SPHEREx observations':'Obserwacje SPHEREx'}
  if(typeof window!=='undefined'){
   const url=new URL(window.location.href);url.searchParams.set('lang',next);window.history.replaceState(null,'',url);
   try{window.localStorage.setItem('spherex-language',next)}catch{/* Storage is optional. */}
@@ -44,7 +45,7 @@ export function t(source:string):string{
  return result;
 }
 export function withLanguage(url:string):string{
- const parsed=new URL(url,typeof location==='undefined'?'http://localhost':location.origin);
+ const parsed=new URL(assetUrl(url),typeof location==='undefined'?'http://localhost':location.origin);
  parsed.searchParams.set('lang',language);
  return parsed.pathname+parsed.search+parsed.hash;
 }

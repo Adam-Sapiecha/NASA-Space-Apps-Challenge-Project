@@ -15,3 +15,6 @@ submission-demo-site-20261114/
 *.md
 *.MD
 !/README.md
+
+# Generated reports stay local.
+output/

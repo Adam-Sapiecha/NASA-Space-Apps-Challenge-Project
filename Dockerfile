@@ -1,5 +1,8 @@
 FROM node:22-slim AS frontend
 WORKDIR /app/frontend
+ARG VITE_BASE_PATH=/
+ARG VITE_API_BASE_URL=
+ENV VITE_BASE_PATH=$VITE_BASE_PATH VITE_API_BASE_URL=$VITE_API_BASE_URL
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
@@ -17,4 +20,4 @@ ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 SPHEREX_DATA_DIR=/app/data
 RUN useradd --create-home app && mkdir /app/data && chown -R app:app /app
 USER app
 EXPOSE 8000
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend.deployment:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

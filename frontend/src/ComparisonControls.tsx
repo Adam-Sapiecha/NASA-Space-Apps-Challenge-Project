@@ -2,13 +2,11 @@ import {useEffect,useMemo,useState} from 'react';
 import {ArrowLeftRight,LoaderCircle,RotateCcw} from 'lucide-react';
 import {t} from './i18n';
 import {date,type Analysis} from './types';
-import {bandChoices,observationCatalogue,pairForBand,type DisplaySettings,type PairPreset,type PlaybackAxis} from './comparison';
+import {bandChoices,observationCatalogue,pairForBand,type DisplaySettings,type PairPreset} from './comparison';
 
-export type ViewMode='side'|'lens'|'blink'|'route'|'series';
-type Props={analysis:Analysis;a:number;b:number;busy:boolean;preset:PairPreset;axis:PlaybackAxis;mode:ViewMode;zoom:number;speed:number;
+type Props={analysis:Analysis;a:number;b:number;busy:boolean;preset:PairPreset;
  shared:DisplaySettings;split:boolean;personal:[DisplaySettings,DisplaySettings];
- onApply:(ids:[string,string])=>Promise<boolean>;onPreset:(preset:PairPreset)=>void;onPause:()=>void;onAxis:(axis:PlaybackAxis)=>void;
- onMode:(mode:ViewMode)=>void;onZoom:(zoom:number)=>void;onSpeed:(speed:number)=>void;
+ onApply:(ids:[string,string])=>Promise<boolean>;onPreset:(preset:PairPreset)=>void;onPause:()=>void;
  onShared:(patch:Partial<DisplaySettings>)=>void;onSplit:(split:boolean)=>void;onPersonal:(slot:0|1,patch:Partial<DisplaySettings>)=>void};
 
 function DisplayEditor({name,value,onChange}:{name:string;value:DisplaySettings;onChange:(patch:Partial<DisplaySettings>)=>void}){
@@ -44,7 +42,7 @@ export default function ComparisonControls(p:Props){
  const setPreset=(preset:PairPreset)=>{setDirty(false);setDraft(current);setPickerOpen(preset==='custom');p.onPreset(preset)};
  const currentGroup=groups.find(group=>draft.every(id=>group.rows.some(row=>row.id===id)))?.id??'';
  return <section className="comparison-controls" aria-label={t('Czas, pasmo i wyświetlanie')}>
-  <div className="combined-heading"><div><h2>{t('Czas i pasmo')}</h2><p>{t('Wybierz dowolne zdjęcia A/B. Ustawienia obrazu działają w tym samym podglądzie.')}</p><p>{t('Obserwacje pola:')} {rows.length} · {t('Gotowe zdjęcia:')} {p.analysis.frames.length}</p></div><button className="primary" disabled={p.busy} onClick={()=>setPreset('auto')}><RotateCcw size={15}/>{t('Najlepszy zestaw i ustawienia')}</button></div>
+  <div className="combined-heading"><div><h2>{t('Dobór obserwacji')}</h2><p>{t('Obserwacje pola:')} {rows.length} · {t('Gotowe zdjęcia:')} {p.analysis.frames.length}</p></div><button disabled={p.busy} onClick={()=>setPreset('auto')}><RotateCcw size={15}/>{t('Najlepszy zestaw i ustawienia')}</button></div>
   <div className="combined-presets" role="group" aria-label={t('Sposób doboru zestawu')}>
    {([{id:'auto',label:t('Automatycznie')},{id:'time',label:t('Ruch w czasie')},{id:'bands',label:t('Różne pasma')},{id:'custom',label:t('Dowolne A/B')}] as const).map(item=><button disabled={p.busy} key={item.id} aria-pressed={p.preset===item.id} onClick={()=>setPreset(item.id)}>{item.label}</button>)}
 
