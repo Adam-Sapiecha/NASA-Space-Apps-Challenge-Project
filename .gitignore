@@ -8,6 +8,14 @@ __pycache__/
 *.pyc
 *.tsbuildinfo
 .env
+.env.*
+!.env.example
+*.log
+.coverage
+htmlcov/
+coverage/
+.ruff_cache/
+frontend/.vite/
 # Isolated, unpublished Sites staging copy. Canonical replay is frontend/public/demo/.
 submission-demo-site-20261114/
 

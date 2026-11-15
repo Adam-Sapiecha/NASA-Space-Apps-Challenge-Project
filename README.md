@@ -86,6 +86,8 @@ cd ..
 
 Deployment tests cover prefixed API/static routes, application lifecycle and CORS. Frontend tests cover temporal and spectral navigation, stable ordering, cached browsing, deployment URLs and coordinate mapping.
 
+The `scripts/` directory contains tools for preparing and exporting real-data demos, packaging a curated server seed, checking the live API and validating the five target fields. These tools require the local observations and audit inputs described in their source; automated tests run independently of those saved reports. Generated reports, local notes and caches stay outside Git and the Docker build context.
+
 ## Data and attribution
 
 - [SPHEREx at NASA/IPAC IRSA](https://irsa.ipac.caltech.edu/Missions/spherex.html)

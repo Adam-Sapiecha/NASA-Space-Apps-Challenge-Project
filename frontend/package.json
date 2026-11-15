@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans": "^5.3.0",
-    "@fontsource/source-serif-4": "^5.3.1",
     "aladin-lite": "3.9.2-beta",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",

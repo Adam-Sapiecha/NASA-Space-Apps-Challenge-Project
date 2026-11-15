@@ -6,3 +6,16 @@ frontend/dist
 .git
 **/__pycache__
 .pytest_cache
+.env
+.env.*
+*.log
+*.md
+*.MD
+!README.md
+output
+coverage
+htmlcov
+.coverage
+.ruff_cache
+frontend/.vite
+submission-demo-site-20261114
