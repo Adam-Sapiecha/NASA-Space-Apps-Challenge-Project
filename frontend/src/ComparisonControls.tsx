@@ -1,5 +1,5 @@
 import {useEffect,useMemo,useState} from 'react';
-import {ArrowLeftRight,LoaderCircle,RotateCcw} from 'lucide-react';
+import {ArrowLeftRight,LoaderCircle,RotateCcw,SlidersHorizontal} from 'lucide-react';
 import {t} from './i18n';
 import {date,type Analysis} from './types';
 import {bandChoices,observationCatalogue,pairForBand,type DisplaySettings,type PairPreset} from './comparison';
@@ -18,14 +18,15 @@ function DisplayEditor({name,value,onChange}:{name:string;value:DisplaySettings;
  </div></fieldset>;
 }
 
-export function ComparisonDisplayControls(p:Props){
- return <div className="comparison-display-controls">
-  <details className="combined-display"><summary>{t('Ustawienia wyświetlania')} · {p.split?t('osobno A/B'):t('wspólne A/B')}</summary>
-   <label className="check-label"><input type="checkbox" checked={p.split} onChange={event=>p.onSplit(event.target.checked)}/>{t('Osobne ustawienia obrazu A i B')}</label>
-   {p.split?<div className="independent-display"><DisplayEditor name="A" value={p.personal[0]} onChange={patch=>p.onPersonal(0,patch)}/><DisplayEditor name="B" value={p.personal[1]} onChange={patch=>p.onPersonal(1,patch)}/></div>:<DisplayEditor name={t('Wspólny podgląd A/B')} value={p.shared} onChange={p.onShared}/>}
-   <small>{t(p.split?'Osobne skale jasności mogą zmieniać wygląd porównania. Pomiary korzystają z danych naukowych.':'Wspólna skala jasności ułatwia porównanie. Kolor pasma i maska są opcjonalne.')}</small>
-  </details>
- </div>;
+type DisplayProps=Pick<Props,'shared'|'split'|'personal'|'onShared'|'onSplit'|'onPersonal'>&{comparing:boolean;onReset:()=>void};
+
+export function ComparisonDisplayControls(p:DisplayProps){
+ return <section className="comparison-display-controls" aria-label={t('Ustawienia wyświetlania')}>
+  <header className="display-controls-heading"><h2><SlidersHorizontal size={17} aria-hidden="true"/>{t('Ustawienia wyświetlania')}</h2><button onClick={p.onReset}><RotateCcw size={14} aria-hidden="true"/>{t('Przywróć podgląd')}</button></header>
+  {p.comparing&&<label className="check-label display-split-toggle"><input type="checkbox" checked={p.split} onChange={event=>p.onSplit(event.target.checked)}/>{t('Osobne ustawienia obrazu A i B')}</label>}
+  {p.split?<div className={`independent-display ${p.comparing?'':'single-display'}`}>{p.comparing&&<DisplayEditor name="A" value={p.personal[0]} onChange={patch=>p.onPersonal(0,patch)}/>}<DisplayEditor name="B" value={p.personal[1]} onChange={patch=>p.onPersonal(1,patch)}/></div>:<DisplayEditor name={t(p.comparing?'Wspólny podgląd A/B':'Bieżący obraz')} value={p.shared} onChange={p.onShared}/>}
+  <small>{t(p.comparing&&p.split?'Osobne skale jasności mogą zmieniać wygląd porównania. Pomiary korzystają z danych naukowych.':'Zmieniasz podgląd, nie dane pomiarowe. Kolor pasma jest umowny.')}</small>
+ </section>;
 }
 
 export default function ComparisonControls(p:Props){

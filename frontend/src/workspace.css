@@ -309,3 +309,30 @@
 }
 
 .epoch-app .archive-toggle { font-size:12px; line-height:1.4; margin:0 0 10px; align-items:flex-start; }
+
+/* Keep image adjustments visible, directly above the observation. */
+.epoch-app .viewer-shell>.comparison-display-controls { padding:12px 16px; background:#f2f7f8; border-top:1px solid var(--line); border-bottom:1px solid #b9cdd3; }
+.display-controls-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; margin-bottom:10px; }
+.epoch-app .display-controls-heading h2 { display:flex; align-items:center; gap:8px; margin:0; font-size:15px; font-weight:600; color:#294f5c; }
+.epoch-app .display-controls-heading button { display:inline-flex; align-items:center; gap:6px; min-height:30px; padding:4px 8px; font-size:12px; border:1px solid #b9cdd3; background:#fff; }
+.epoch-app .viewer-shell .comparison-display-controls .display-editor { padding:0; border:0; }
+.epoch-app .viewer-shell .comparison-display-controls .display-editor>legend { font-size:12px; color:var(--muted); margin-bottom:7px; }
+.epoch-app .viewer-shell .comparison-display-controls>.display-editor>legend { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.epoch-app .viewer-shell .comparison-display-controls .display-editor-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 16px; align-items:center; }
+.epoch-app .viewer-shell .comparison-display-controls .display-editor-grid>label { font-size:13px; }
+.epoch-app .viewer-shell .comparison-display-controls .display-editor-grid select { font-size:14px; min-height:38px; background:#fff; }
+.epoch-app .viewer-shell .comparison-display-controls .check-label { display:flex; align-items:center; gap:8px; margin:0; line-height:1.4; }
+.epoch-app .viewer-shell .comparison-display-controls input[type=checkbox] { width:17px; height:17px; accent-color:var(--accent); }
+.epoch-app .viewer-shell .comparison-display-controls .display-split-toggle { margin:0 0 12px; }
+.epoch-app .viewer-shell .comparison-display-controls .independent-display { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.epoch-app .viewer-shell .comparison-display-controls .independent-display.single-display { grid-template-columns:minmax(0,1fr); }
+.epoch-app .viewer-shell .comparison-display-controls>small { display:block; margin-top:9px; font-size:11px; color:var(--muted); line-height:1.45; }
+@media(min-width:1200px){
+ .epoch-app .viewer-shell .comparison-display-controls>.display-editor>.display-editor-grid,.epoch-app .viewer-shell .comparison-display-controls .single-display .display-editor-grid { grid-template-columns:minmax(160px,1fr) minmax(155px,1fr) minmax(115px,.8fr) minmax(130px,.9fr); }
+}
+@media(max-width:600px){
+ .epoch-app .viewer-shell>.comparison-display-controls { padding:12px; }
+ .epoch-app .display-controls-heading { gap:8px; }
+ .epoch-app .display-controls-heading h2 { font-size:14px; }
+ .epoch-app .viewer-shell .comparison-display-controls .independent-display .display-editor-grid { grid-template-columns:minmax(0,1fr); }
+}

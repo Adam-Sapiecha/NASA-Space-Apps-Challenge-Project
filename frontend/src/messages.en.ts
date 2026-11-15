@@ -706,5 +706,8 @@ const messages:Record<string,string>={
  "Wybierz pole, przesuwaj czas wraz z godziną i wybieraj pasma dostępne w tym dniu. Przypięcie zdjęcia jako A pozwala porównać je z kolejnymi obserwacjami.":"Choose a field, move through exact observation times and select wavelengths available that day. Pin an image as A to compare it with later observations.",
  "Wybrano obiekt:":"Selected object:",
  "Środek pola jest ustawiony. Możesz wyszukać zdjęcia lub zmienić obszar na mapie.":"The field centre is set. Search for images or choose a different area on the map.",
+ "Przywróć podgląd":"Reset display",
+ "Bieżący obraz":"Current image",
+ "Zmieniasz podgląd, nie dane pomiarowe. Kolor pasma jest umowny.":"These settings change the display, not measurement data. Wavelength colour is illustrative.",
 };
 export default messages;
