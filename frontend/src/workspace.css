@@ -252,15 +252,18 @@
 .field-start>header { max-width:780px; margin-bottom:26px; }
 .field-start h1 { margin:0 0 10px; }
 .field-start p { color:var(--muted); margin:0 0 18px; }
-.start-routes { display:grid; grid-template-columns:1.2fr 1fr; gap:24px; }
-.start-routes>section { min-width:0; padding:24px; background:#fff; border:1px solid var(--line); }
+.start-routes { display:grid; grid-template-columns:1.3fr 1fr; gap:48px; }
+.start-routes>section { min-width:0; padding:0; }
+.start-routes>section+section { border-left:1px solid var(--line); padding-left:32px; }
 .route-label { color:var(--accent); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
-.start-routes h2 { font-weight:500; font-size:21px; margin:8px 0 12px; }
+.start-routes h2 { font-weight:500; font-size:19px; margin:0 0 10px; }
 .ready-fields { border-top:1px solid var(--line); }
 .ready-fields>button { display:flex; width:100%; justify-content:space-between; gap:14px; padding:16px 0; border:0; border-bottom:1px solid var(--line); background:transparent; text-align:left; }
 .ready-fields strong { font-size:15px; font-weight:500; }
 .ready-fields small { display:block; font-size:13px; line-height:1.5; font-weight:400; margin-top:5px; color:var(--muted); }
 .ready-fields svg { flex-shrink:0; color:var(--accent); }
+.ready-fields>button:hover:not(:disabled) { background:#e2e9ec; }
+.ready-fields>button:focus-visible { outline-offset:-3px; }
 .start-routes .route-note { margin:26px 0 20px; font-size:13px; }
 .field-inputs { border:0; padding:0; margin:0; min-width:0; }
 .field-map-picker { padding:0 12px 14px; }
@@ -271,7 +274,8 @@
  .field-steps>button { font-size:13px; line-height:1.3; }
  .field-start { padding-top:22px; }
  .start-routes { grid-template-columns:minmax(0,1fr); gap:16px; }
- .start-routes>section { padding:20px; }
+ .start-routes>section { padding:0; }
+ .start-routes>section+section { border-left:0; border-top:1px solid var(--line); padding:24px 0 0; }
 }
 
 .image-quality-legend .missing-legend.plain:before { background:#111b25; border-color:#637581; }
@@ -336,3 +340,11 @@
  .epoch-app .display-controls-heading h2 { font-size:14px; }
  .epoch-app .viewer-shell .comparison-display-controls .independent-display .display-editor-grid { grid-template-columns:minmax(0,1fr); }
 }
+
+/* Reading and interaction details shared by the observation views. */
+.epoch-app ::selection { background:#c6dde4; color:#173f4d; }
+.epoch-app input,.epoch-app textarea { caret-color:var(--accent); }
+.epoch-app button:focus-visible,.epoch-app summary:focus-visible,.epoch-app a:focus-visible,.epoch-app select:focus-visible,.epoch-app input:focus-visible { outline:3px solid #426d7a; outline-offset:3px; }
+.epoch-app .field-start p { max-width:70ch; }
+.epoch-app .start-routes .route-note { font-size:13px; }
+@media(max-width:600px) { .epoch-app input:not([type=checkbox]):not([type=range]),.epoch-app select { font-size:16px; } }
