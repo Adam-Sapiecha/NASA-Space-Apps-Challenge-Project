@@ -709,5 +709,13 @@ const messages:Record<string,string>={
  "Przywróć podgląd":"Reset display",
  "Bieżący obraz":"Current image",
  "Zmieniasz podgląd, nie dane pomiarowe. Kolor pasma jest umowny.":"These settings change the display, not measurement data. Wavelength colour is illustrative.",
+ "Wybierz przykład lub własne pole nieba.":"Choose an example or your own sky field.",
+ "Zdjęcia są już pobrane.":"Images are already downloaded.",
+ "Współrzędne, obiekt lub mapa nieba.":"Coordinates, an object or the sky map.",
+ "Nowe obserwacje wymagają pobrania z IRSA.":"New observations require an IRSA download.",
+ "Kliknij obraz, aby wskazać tę samą pozycję na obu zdjęciach.":"Click to select the same position in both images.",
+ "Zmień czas lub pasmo suwakami.":"Change time or wavelength with the sliders.",
+ "Ustawienia dotyczą podglądu. Kolor pasma jest umowny.":"Display settings only. Wavelength colour is illustrative.",
+ "Pozostałe obserwacje wybierzesz w polach A/B.":"Choose other observations in the A/B fields.",
 };
 export default messages;
