@@ -1,4 +1,4 @@
-import {apiUrl,assetUrl} from './urls.ts';
+import {apiUrl} from './urls.ts';
 import {t,getLanguage,setLanguage,subscribeLanguage} from './i18n.ts';
 import {useEffect,useMemo,useRef,useState,useSyncExternalStore} from 'react';
 import {ArrowRight,Check,Hand,Link,LoaderCircle,TriangleAlert,X} from 'lucide-react';
@@ -229,7 +229,6 @@ export default function App(){
  return <div className="epoch-app">
   <a className="skip-link" href={panel==='motion'?'#motion-example':'#task-content'}>{t('Przejdź do obrazu')}</a>
   <header className="app-header">
-   <a className="app-title" href={assetUrl('/')}><b>SPHEREx</b><span>{t('Porównywanie obserwacji SPHEREx')}</span></a>
    <div className="context-actions"><label className="language-control"><span>Language / Język</span><select aria-label="Language / Język" value={language} onChange={event=>setLanguage(event.target.value as 'en'|'pl')}><option value="en">English</option><option value="pl">Polski</option></select></label><button className="subtle" aria-expanded={help} onClick={()=>setHelp(value=>!value)}>{t(help?'Zamknij pomoc':'Pomoc i dane')}</button></div>
   </header>
   <main className={`workbench ${expert?'expert-mode':'simple-mode'}`} id="task-content">

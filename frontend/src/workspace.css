@@ -12,10 +12,7 @@
 .epoch-app p { line-height:1.55; }
 .epoch-app summary { cursor:pointer; }
 .epoch-app .mono,.epoch-app time,.epoch-overlay,.frame-counter,.timeline-note,.band-values,.motion-result dd { font-variant-numeric:tabular-nums; }
-.epoch-app .app-header { min-height:58px; height:auto; padding:8px 28px; background:#fff; }
-.epoch-app .app-title { font-size:23px; gap:16px; }
-.epoch-app .app-title b { font-weight:600; letter-spacing:-.6px; }
-.epoch-app .app-title span { font-size:14px; padding-left:16px; }
+.epoch-app .app-header { min-height:52px; height:auto; padding:8px 28px; background:#fff; justify-content:flex-end; }
 .epoch-app .language-control { display:flex; align-items:center; gap:8px; font-size:12px; }
 .epoch-app .language-control select { min-width:94px; min-height:36px; padding:5px 8px; }
 .epoch-app main.workbench { max-width:1540px; padding:0 28px; }
@@ -139,7 +136,6 @@
 }
 @media(max-width:760px){
  .epoch-app .app-header { padding:8px 16px; gap:8px; }
- .epoch-app .app-title span { display:none; }
  .epoch-app main.workbench { padding:0 16px; }
  .epoch-app .task-navigation { gap:16px; overflow-x:auto; }
  .epoch-app .task-navigation button { white-space:nowrap; flex-shrink:0; font-size:14px; }
